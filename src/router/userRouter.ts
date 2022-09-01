@@ -6,6 +6,7 @@ const user = new UserController()
 const router = Router()
 
 router.post('/signup', user.signup)
+router.post('/signin', user.signin)
 router.post('/emailValidation', user.emailValidation)
 
 

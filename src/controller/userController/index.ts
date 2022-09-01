@@ -4,6 +4,7 @@ import { CodesFiveRepo } from '../../db/repository/codeRepository'
 
 import nodemailer from 'nodemailer'
 import dayjs from "dayjs";
+import bcrypt from 'bcrypt'
 
 import {sign} from 'jsonwebtoken'
 
@@ -21,13 +22,36 @@ export class UserController {
 
         
         const {token, refresh_token} = await this.#jwtGenerator(result)
-        
+        await this.#userRepo.saveRefreshToken(refresh_token, result)
+
+
         const fivedigit = Math.floor(Math.random() * 90000) + 10000;
         await this.#codeRepo.saveCode(fivedigit, result)
 
         await this.#sendCode(fivedigit)
 
         return res.json({token, refresh_token})
+
+    }
+
+    signin = async (req: Request, res: Response) => {
+        const {login, password} = req.body
+
+        const user = await this.#userRepo.getUser(login)
+
+        console.log(user)
+
+        if (user) {
+            const validPassword = await bcrypt.compare(password, user.password)
+
+            if (validPassword) {
+                const {token, refresh_token} = await this.#jwtGenerator(user)
+                await this.#userRepo.updateRefreshToken(refresh_token, user)
+
+                return res.json({token, refresh_token})
+            }
+        }
+
 
     }
 

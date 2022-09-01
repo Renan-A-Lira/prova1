@@ -17,7 +17,7 @@ export class User {
     @Column({unique: true})
     telefone: string
 
-    @Column({select: false})
+    @Column()
     password: string
 
     @Column({type: 'bool', default: false})

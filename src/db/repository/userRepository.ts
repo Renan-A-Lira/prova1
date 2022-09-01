@@ -1,13 +1,16 @@
 import { AppDataSource } from "..";
 import { User } from "../entity/User";
+import { RefreshToken } from "../entity/Refresh";
 
 import bcrypt from 'bcrypt'
+import dayjs from "dayjs";
 
 
 
 export class UserRepo {
 
     #userRepository = AppDataSource.getRepository(User)
+    #refreshRepository = AppDataSource.getRepository(RefreshToken)
 
     create = async (name, email, password, telefone) => {
 
@@ -27,6 +30,24 @@ export class UserRepo {
         return user
 
     }
+
+
+    saveRefreshToken = async (rtoken, user) => {
+
+
+        const token = new RefreshToken
+
+        token.token = rtoken
+        token.ExpiresIn = dayjs().add(30, 'day').unix()
+        token.user = user
+
+        return await this.#refreshRepository.save(token)
+    }
+
+    updateRefreshToken = async (rtoken, userId) => {
+        await this.#refreshRepository.update({user: {id: userId.id}}, {token: rtoken, ExpiresIn: dayjs().add(30, 'day').unix()})
+    }
+
 
     getUser = async (email) => {
         const user = this.#verifyUserExisty(email)
